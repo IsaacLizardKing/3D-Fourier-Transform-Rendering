@@ -39,16 +39,10 @@ def ClassicalNewton(Vectors, T, origin, c = np.float32([[[1, 1, 0], [1, 1, 0], [
 def ModifiedNewton(Vectors, T, origin, c = np.float32([[[1, 1, 0], [1, 1, 0], [1, 1, 0]]]), iterations = 500, thresh = 0, MaxDistance = -1):
 	MaxStep = math.pi / 16
 	MinStep = MaxStep / 8
-	# ~ print(MaxStep.shape)
-	# ~ print(MinStep.shape)
 	N = c.shape[0]
-	start = time.time()
 	X, Y, Z = FourierSeries(T, c)
-	print(time.time() - start)
-	start = time.time()
 	w = (X * Y * Z) / N - thresh
 	OriginalSigns = np.absolute(w) / w
-	print(time.time() - start)
 	
 	while iterations > 0:
 		X, Y, Z = FourierSeries(T, c)
@@ -68,25 +62,4 @@ def ModifiedNewton(Vectors, T, origin, c = np.float32([[[1, 1, 0], [1, 1, 0], [1
 		T[:,1] += dw * Vectors[:,1]
 		T[:,2] += dw * Vectors[:,2]
 		iterations -= 1
-	# ~ print(iterations)
 	return T, PartialDerivatives(T, c)
-
-# ~ XT = math.pi/3
-# ~ YT = math.pi/3
-# ~ ZT = math.pi/3
-# ~ XT = (math.pi/2) * 1.0
-# ~ YT = (math.pi/2) * 1.0
-# ~ ZT = (math.pi/2) * 1.0
-# ~ XT = 0
-# ~ YT = 0
-# ~ ZT = 0
-
-# ~ theta = 45
-# ~ phi = -10
-# ~ fov = 150
-# ~ fov = fov / 180 * math.pi
-# ~ w = 400
-# ~ h = 400
-# ~ cam = EggCrateRenderer.camera(theta * math.pi / 180, phi * math.pi / 180, fov, [w,h], XT, YT, ZT)
-# ~ EggCrateRenderer.show(cam.viewEggCrate(0))
-
