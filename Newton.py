@@ -103,10 +103,11 @@ def ModifiedNewtonTransform(Vectors, T, origin, data, iterations = 500, thresh =
 		dw[dw > MaxStep] = MaxStep
 		NewSigns = np.absolute(w) / w
 		dw[OriginalSigns != NewSigns] = 0
+		T = data.CheckBounds(Vectors, T, origin, MaxDistance)
 		if(MaxDistance > 0):
 			dw[np.sqrt(np.sum(np.power(T - origin, 2), axis=-1)) > MaxDistance] = 0
 		if(np.max(dw) == 0):
-			break;
+			break
 		T[:,0] += dw * Vectors[:,0]
 		T[:,1] += dw * Vectors[:,1]
 		T[:,2] += dw * Vectors[:,2]
