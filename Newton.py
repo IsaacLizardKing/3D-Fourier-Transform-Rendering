@@ -21,15 +21,13 @@ def FourierSeries(T, c):
 		Z += c[a, 2, 0] * np.sin(c[a, 2, 1] * T[:,2] + c[a, 2, 2])
 	return X, Y, Z
 	
-def ClassicalNewton(Vectors, T, origin, c = np.float32([[[1, 1, 0], [1, 1, 0], [1, 1, 0]]]), iterations = 5, thresh = 0):
+def ClassicalNewton(Vectors, T, origin, c = np.float32([[[1, 1, 0], [1, 1, 0], [1, 1, 0]]]), iterations = 1, thresh = 0):
 	N = c.shape[0]
 	while iterations > 0:
 		X, Y, Z = FourierSeries(T, c)
 		w = (X * Y * Z) / N - thresh
 		m = np.sum(PartialDerivatives(T, c), axis = -1) / N
-		cond1 = np.absolute(w / m) >= 1
-		asymptotics = m[cond1] * 1
-		m[cond1] = (asymptotics / np.absolute(asymptotics)) * np.power(math.e, np.absolute(asymptotics))
+		m = (m / np.absolute(m)) * np.power(math.e, np.absolute(m))
 		T[:,0] -= (w / m) * Vectors[:,0]
 		T[:,1] -= (w / m) * Vectors[:,1]
 		T[:,2] -= (w / m) * Vectors[:,2]

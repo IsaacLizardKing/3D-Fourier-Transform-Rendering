@@ -102,8 +102,8 @@ class camera:
 		Coords[:, 1] = self.origin[1]
 		Coords[:, 2] = self.origin[2]
 		
-		T, DT = Newton.ModifiedNewton(Vect, Coords, self.origin * 1, Coefficients, thresh = Thresh, MaxDistance = self.MaxRenderDistance)
-		# ~ T, DT = Newton.ClassicalNewton(Vect, Estimates, self.origin, thresh = Thresh)
+		Estimates, _ = Newton.ModifiedNewton(Vect, Coords, self.origin * 1, Coefficients, thresh = Thresh, MaxDistance = self.MaxRenderDistance)
+		T, DT = Newton.ClassicalNewton(Vect, Estimates, self.origin, thresh = Thresh)
 		
 		
 		T = np.reshape(T, self.coords.shape)

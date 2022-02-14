@@ -42,28 +42,29 @@ except:
 
 
 # ~ incrementally render 360 degrees at t = 0
-threshold = 0
-os.chdir("C:/NewtonRenders/CubeRotateRender")
-for p in range(0, 360):
-	out = cam.RenderFourier(EggCrate, threshold)
-	cv2.imwrite(f"{100 + p}.png", out)
-	Camera.show(out, 1)
-	cam.rotate(math.pi / 180, 0)
-	print(p, end = "\r")
-cam.faceDir(0, 0)
+# ~ threshold = 0
+# ~ os.chdir("C:/NewtonRenders/CubeRotateRender")
+# ~ for p in range(0, 360):
+	# ~ out = cam.RenderFourier(EggCrate, threshold)
+	# ~ cv2.imwrite(f"{100 + p}.png", out)
+	# ~ Camera.show(out, 1)
+	# ~ cam.rotate(math.pi / 180, 0)
+	# ~ print(p, end = "\r")
+# ~ cam.faceDir(0, 0)
 
-# ~ move through empty space at t = -0.02
-os.chdir("C:/NewtonRenders/SpaceTraversalRender")
-threshold = -0.1
-cam.rotate(math.pi/4, 0)
-print(cam.theta, cam.phi)
-M = ((math.pi * 2) ** 2 + (math.pi * 2) ** 2) ** 0.5 / 360
-for p in range(0, 360):
-	out = cam.RenderFourier(EggCrate, threshold)
-	Camera.show(out, 1)
-	cv2.imwrite(f"{100 + p}.png", out)
-	cam.origin[0] += M 
-	cam.origin[2] += M
+# ~ move through empty space at t = -0.1
+
+# ~ os.chdir("C:/NewtonRenders/SpaceTraversalRender")
+# ~ threshold = -0.1
+# ~ cam.rotate(math.pi/4, 0)
+# ~ print(cam.theta, cam.phi)
+# ~ M = ((math.pi * 2) ** 2 / 2) ** 0.5 / 360
+# ~ for p in range(0, 360):
+	# ~ out = cam.RenderFourier(EggCrate, threshold)
+	# ~ Camera.show(out, 1)
+	# ~ cv2.imwrite(f"{100 + p}.png", out)
+	# ~ cam.origin[0] += M 
+	# ~ cam.origin[2] += M
 	# ~ print(p, end = "\r")
 
 # ~ orbit origin at t = -0.02
@@ -77,7 +78,7 @@ for p in range(0, 1):
 	th = p / 180 * math.pi
 	ph = 0 # math.pi / 4 * np.sin(p / 180 * math.pi)
 	x = math.pi * math.cos(th) * math.sin(ph)
-	y = math.pi * math.cos(ph) * math.sin(ph) 
+	y = math.pi * math.cos(th) * math.sin(ph) 
 	z = math.pi * math.cos(ph)
 	cam.origin[0] = x + Center[0]
 	cam.origin[1] = y + Center[0]
