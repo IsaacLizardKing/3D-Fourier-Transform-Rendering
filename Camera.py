@@ -102,23 +102,22 @@ class camera:
 		Coords[:, 1] = self.origin[1]
 		Coords[:, 2] = self.origin[2]
 		
-		Estimates, _ = Newton.ModifiedNewton(Vect, Coords, self.origin * 1, Coefficients, thresh = Thresh, MaxDistance = self.MaxRenderDistance)
-		T, DT = Newton.ClassicalNewton(Vect, Estimates, self.origin, thresh = Thresh)
-		
+		T, DT = Newton.ModifiedNewtonSeries(Vect, Coords, self.origin * 1, Coefficients, thresh = Thresh, MaxDistance = self.MaxRenderDistance)
+		# ~ T, DT = Newton.ClassicalNewtonSeries(Vect, Estimates, self.origin, thresh = Thresh)
 		
 		T = np.reshape(T, self.coords.shape)
 		DT = np.reshape(DT, self.coords.shape)
 		frame = self.DoShading(T, DT)
 		return normalize(frame)
 		
-	def RenderFourierTransform(self, Transform, Thresh):
+	def RenderFourierTransform(self, Transform, Thresh, iterations = 500):
 		Vect = np.reshape(self.coords * 1, (self.coords.shape[0] * self.coords.shape[1], 3))
 		Coords = Vect * 0
 		Coords[:, 0] = self.origin[0]
 		Coords[:, 1] = self.origin[1]
 		Coords[:, 2] = self.origin[2]
 		
-		T, DT = Newton.ModifiedNewtonTransform(Vect, Coords, self.origin * 1, Transform, thresh = Thresh, MaxDistance = self.MaxRenderDistance)
+		T, DT = Newton.ModifiedNewtonTransform(Vect, Coords, self.origin * 1, Transform, iterations=iterations, thresh = Thresh, MaxDistance = self.MaxRenderDistance)
 		# ~ T, DT = Newton.ClassicalNewtonTransform(Vect, Estimates, self.origin, Data, thresh = Thresh)
 		
 		
