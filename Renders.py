@@ -4,6 +4,7 @@ import time
 import cv2
 import Camera
 import os
+import CustomFourier
 XT = math.pi / 2
 YT = math.pi / 2
 ZT = math.pi / 2
@@ -12,11 +13,30 @@ theta = 90
 phi = 0
 fov = 140
 fov = fov / 180 * math.pi
-w = 600
-h = 600
+w = 50
+h = 50
 cam = Camera.camera(theta * math.pi / 180, phi * math.pi / 180, fov, [w,h], XT, YT, ZT)
 
 EggCrate = np.array([[[1, 1, 0], [1, 1, 0], [1, 1, 0]]], np.float32)
+
+
+
+# ~ octahedron input data
+size = 5
+x, y, z = np.mgrid[:size, :size * 2, :size * 3] - (size / 2)
+x = np.abs(x)
+y = np.abs(y)
+z = np.abs(z)
+octahedron = np.round(x + y + z - size * 0.4)
+octahedron += np.random.normal(0,3,octahedron.size).reshape(octahedron.shape)
+OctahedronTransform = CustomFourier.Fourier(octahedron)
+Camera.show(cam.RenderFourierTransform(OctahedronTransform, 0))
+
+
+
+
+
+
 
 try:
 	os.mkdir("C:/NewtonRenders")
@@ -71,34 +91,35 @@ except:
 
 # ~ This is broken
 
-os.chdir("C:/NewtonRenders/CuboidOrbitRender")
-Center = np.array([-math.pi / 2, -math.pi / 2, -math.pi / 2], np.float32)
-threshold = -0.2
-for p in range(0, 1):
-	th = p / 180 * math.pi
-	ph = 0 # math.pi / 4 * np.sin(p / 180 * math.pi)
-	x = math.pi * math.cos(th) * math.sin(ph)
-	y = math.pi * math.cos(th) * math.sin(ph) 
-	z = math.pi * math.cos(ph)
-	cam.origin[0] = x + Center[0]
-	cam.origin[1] = y + Center[0]
-	cam.origin[2] = z + Center[0]
-	cam.facePoint(Center)
-	out = cam.RenderFourier(EggCrate, threshold)
-	Camera.show(out, 1)
-	cv2.imwrite(f"{100 + p}.png", out)
+# ~ os.chdir("C:/NewtonRenders/CuboidOrbitRender")
+# ~ Center = np.array([-math.pi / 2, -math.pi / 2, -math.pi / 2], np.float32)
+# ~ threshold = -0.2
+# ~ for p in range(0, 360):
+	# ~ th = p / 180 * math.pi
+	# ~ ph = 0 # math.pi / 4 * np.sin(p / 180 * math.pi)
+	# ~ x = math.pi * math.cos(th) * math.sin(ph)
+	# ~ y = math.pi * math.cos(th) * math.sin(ph) 
+	# ~ z = math.pi * math.cos(ph)
+	# ~ cam.origin[0] = x + Center[0]
+	# ~ cam.origin[1] = y + Center[0]
+	# ~ cam.origin[2] = z + Center[0]
+	# ~ cam.facePoint(Center)
+	# ~ out = cam.RenderFourier(EggCrate, threshold)
+	# ~ Camera.show(out, 1)
+	# ~ cv2.imwrite(f"{100 + p}.png", out)
 	
-	print(p, end = "\r")
+	# ~ print(p, end = "\r")
 
 
 # ~ show threshold change from t = 0 to t = 1
-os.chdir("C:/NewtonRenders/ThresholdRender")
-threshold = -1
-cam.faceDir(0, 0)
-for p in range(0, 200):
-	out = cam.RenderFourier(EggCrate, threshold)
-	Camera.show(out, 1)
-	cv2.imwrite(f"{100 + p}.png", out)
-	threshold += 0.005
-	print(p, end = "\r")
+
+# ~ os.chdir("C:/NewtonRenders/ThresholdRender")
+# ~ threshold = -1
+# ~ cam.faceDir(0, 0)
+# ~ for p in range(0, 200):
+	# ~ out = cam.RenderFourier(EggCrate, threshold)
+	# ~ Camera.show(out, 1)
+	# ~ cv2.imwrite(f"{100 + p}.png", out)
+	# ~ threshold += 0.005
+	# ~ print(p, end = "\r")
 
