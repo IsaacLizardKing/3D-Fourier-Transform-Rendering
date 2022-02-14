@@ -19,9 +19,9 @@ def PartialDerivativesTransform(T, data):
 	Z = T[:, 2]
 	w = data.ParallelEval(T)
 	DT = T * 0
-	DT[:, 0] = (w - data.ParallelEval(np.column_stack(X + COORDINATE_FUDGER, Y, Z))) / COORDINATE_FUDGER
-	DT[:, 1] = (w - data.ParallelEval(np.column_stack(X, Y + COORDINATE_FUDGER, Z))) / COORDINATE_FUDGER
-	DT[:, 2] = (w - data.ParallelEval(np.column_stack(X, Y, Z + COORDINATE_FUDGER))) / COORDINATE_FUDGER
+	DT[:, 0] = (w - data.ParallelEval(np.column_stack((X + COORDINATE_FUDGER, Y, Z)))) / COORDINATE_FUDGER
+	DT[:, 1] = (w - data.ParallelEval(np.column_stack((X, Y + COORDINATE_FUDGER, Z)))) / COORDINATE_FUDGER
+	DT[:, 2] = (w - data.ParallelEval(np.column_stack((X, Y, Z + COORDINATE_FUDGER)))) / COORDINATE_FUDGER
 	return DT
 
 def FourierSeries(T, c):

@@ -13,8 +13,8 @@ theta = 90
 phi = 0
 fov = 140
 fov = fov / 180 * math.pi
-w = 50
-h = 50
+w = 200
+h = 200
 cam = Camera.camera(theta * math.pi / 180, phi * math.pi / 180, fov, [w,h], XT, YT, ZT)
 
 EggCrate = np.array([[[1, 1, 0], [1, 1, 0], [1, 1, 0]]], np.float32)
@@ -30,9 +30,10 @@ z = np.abs(z)
 octahedron = np.round(x + y + z - size * 0.4)
 octahedron += np.random.normal(0,3,octahedron.size).reshape(octahedron.shape)
 OctahedronTransform = CustomFourier.Fourier(octahedron)
+start = time.time()
 Camera.show(cam.RenderFourierTransform(OctahedronTransform, 0))
-
-
+end = time.time()
+print(end - start)
 
 
 
