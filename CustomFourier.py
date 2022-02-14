@@ -40,7 +40,7 @@ class Fourier:
 		Y = coords[:, 1]
 		Z = coords[:, 2]
 		mask = X>0 * X<self.bounds[0] * Y>0 * Y<self.bounds[1] * Z>0 * Z<self.bound[2]
-		T[mask, 0] = origin[0] + MaxDistance * Vectors[:, 0] * 1.1
-		T[mask, 1] = origin[1] + MaxDistance * Vectors[:, 1] * 1.1
-		T[mask, 2] = origin[2] + MaxDistance * Vectors[:, 2] * 1.1
-		return T
+		coords[1-mask, 0] = origin[0] + MaxDistance * Vectors[:, 0] * 1.1
+		coords[1-mask, 1] = origin[1] + MaxDistance * Vectors[:, 1] * 1.1
+		coords[1-mask, 2] = origin[2] + MaxDistance * Vectors[:, 2] * 1.1
+		return coords
