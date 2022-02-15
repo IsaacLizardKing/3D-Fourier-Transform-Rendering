@@ -36,11 +36,17 @@ class Fourier:
 		return w
 
 	def CheckBounds(self, Vectors, coords, origin, MaxDistance):
+		# ~ Vectors is the marching vectors
+		# ~ coords is the current progress of the marching vectors
+		# ~ origin is the coords of the camera
+		# ~ MaxDistance is the maximum render distance
+		# ~ returns coords, but all points outside of the box are set to MaxDistance * 1.1 away from the camera
 		X = coords[:, 0]
 		Y = coords[:, 1]
 		Z = coords[:, 2]
-		mask = X>0 * X<self.bounds[0] * Y>0 * Y<self.bounds[1] * Z>0 * Z<self.bound[2]
-		coords[1-mask, 0] = origin[0] + MaxDistance * Vectors[:, 0] * 1.1
-		coords[1-mask, 1] = origin[1] + MaxDistance * Vectors[:, 1] * 1.1
-		coords[1-mask, 2] = origin[2] + MaxDistance * Vectors[:, 2] * 1.1
+		mask = (X>self.bounds[0][0]) * (X<self.bounds[0][1]) * (Y>self.bounds[1][0]) * (Y<self.bounds[1][1]) * (Z>self.bounds[2][0]) * (Z<self.bounds[2][1])
+		mask = mask == 0
+		coords[mask, 0] = origin[0] + (MaxDistance * Vectors[mask, 0] * 1.1)
+		coords[mask, 1] = origin[1] + (MaxDistance * Vectors[mask, 1] * 1.1)
+		coords[mask, 2] = origin[2] + (MaxDistance * Vectors[mask, 2] * 1.1)
 		return coords
