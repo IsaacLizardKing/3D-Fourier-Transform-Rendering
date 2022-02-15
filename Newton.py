@@ -49,14 +49,20 @@ def ClassicalNewtonSeries(Vectors, T, origin, c = np.float32([[[1, 1, 0], [1, 1,
 	return T, PartialDerivatives(T, c)
 
 def BoundPoints(Vectors, coords, origin, MaxDistance, bounds):
-		# ~ bounds should be in the form [[lowerX,upperX],[lowerY,upperY],[lowerZ,upperZ]]
+		# ~ Vectors is the marching vectors
+		# ~ coords is the current progress of the marching vectors
+		# ~ origin is the coords of the camera
+		# ~ MaxDistance is the maximum render distance
+		# ~ bounds is the box to be rendered, should be in the form [[lowerX,upperX],[lowerY,upperY],[lowerZ,upperZ]]
+		# ~ returns coords, but all points outside of the box are set to MaxDistance * 1.1 away from the camera
 		X = coords[:, 0]
 		Y = coords[:, 1]
 		Z = coords[:, 2]
-		mask = X>bounds[0][0] * X<bounds[0][1] * Y>bounds[1][0] * Y<bounds[1][1] * Z>bounds[2][0] * Z<bounds[2][1]
-		coords[1-mask, 0] = origin[0] + MaxDistance * Vectors[:, 0] * 1.1
-		coords[1-mask, 1] = origin[1] + MaxDistance * Vectors[:, 1] * 1.1
-		coords[1-mask, 2] = origin[2] + MaxDistance * Vectors[:, 2] * 1.1
+		mask = (X>bounds[0][0]) * (X<bounds[0][1]) * (Y>bounds[1][0]) * (Y<bounds[1][1]) * (Z>bounds[2][0]) * (Z<bounds[2][1])
+		mask = mask == 0
+		coords[mask, 0] = origin[0] + (MaxDistance * Vectors[mask, 0] * 1.1)
+		coords[mask, 1] = origin[1] + (MaxDistance * Vectors[mask, 1] * 1.1)
+		coords[mask, 2] = origin[2] + (MaxDistance * Vectors[mask, 2] * 1.1)
 		return coords
 
 def ModifiedNewtonSeries(Vectors, T, origin, c = np.float32([[[1, 1, 0], [1, 1, 0], [1, 1, 0]]]), iterations = 500, thresh = 0, MaxDistance = -1, bounds = None):
@@ -70,7 +76,7 @@ def ModifiedNewtonSeries(Vectors, T, origin, c = np.float32([[[1, 1, 0], [1, 1, 
 	while iterations > 0:
 		X, Y, Z = FourierSeries(T, c)
 		w = (X * Y * Z) / N - thresh
-		m = np.sum(PartialDerivatives(T, c), axis = -1)
+		m = np.sum(PartialDerivativesSeries(T, c), axis = -1)
 		dw = w / m
 		# ~ print(np.min(np.absolute(dw)) < MinStep, np.max(dw) > MaxStep)
 		dw[dw < MinStep] = MinStep
@@ -78,7 +84,7 @@ def ModifiedNewtonSeries(Vectors, T, origin, c = np.float32([[[1, 1, 0], [1, 1, 
 		NewSigns = np.absolute(w) / w
 		dw[OriginalSigns != NewSigns] = 0
 		if bounds:
-			BoundPoints(Vectors, T, origin, MaxDistance, bounds)
+			T = BoundPoints(Vectors, T, origin, MaxDistance, bounds)
 		if(MaxDistance > 0):
 			dw[np.sqrt(np.sum(np.power(T - origin, 2), axis=-1)) > MaxDistance] = 0
 		if(np.max(dw) == 0):
@@ -87,7 +93,7 @@ def ModifiedNewtonSeries(Vectors, T, origin, c = np.float32([[[1, 1, 0], [1, 1, 
 		T[:,1] += dw * Vectors[:,1]
 		T[:,2] += dw * Vectors[:,2]
 		iterations -= 1
-	return T, PartialDerivatives(T, c)
+	return T, PartialDerivativesSeries(T, c)
 
 def ClassicalNewtonTransform(Vectors, T, origin, data, iterations = 1, thresh = 0):
 	while iterations > 0:
