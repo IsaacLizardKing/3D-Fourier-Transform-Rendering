@@ -95,14 +95,14 @@ class camera:
 		frame[:,:,2] = normals[:,:,2] * (distances) + np.max(normals[:,:,2]) * (1 - distances) * 0.3
 		return frame
 		
-	def RenderFourierSeries(self, Coefficients, Thresh):
+	def RenderFourierSeries(self, Coefficients, Thresh, bounds = None):
 		Vect = np.reshape(self.coords * 1, (self.coords.shape[0] * self.coords.shape[1], 3))
 		Coords = Vect * 0
 		Coords[:, 0] = self.origin[0]
 		Coords[:, 1] = self.origin[1]
 		Coords[:, 2] = self.origin[2]
 		
-		T, DT = Newton.ModifiedNewtonSeries(Vect, Coords, self.origin * 1, Coefficients, thresh = Thresh, MaxDistance = self.MaxRenderDistance)
+		T, DT = Newton.ModifiedNewtonSeries(Vect, Coords, self.origin * 1, Coefficients, thresh = Thresh, MaxDistance = self.MaxRenderDistance, bounds = bounds)
 		# ~ T, DT = Newton.ClassicalNewtonSeries(Vect, Estimates, self.origin, thresh = Thresh)
 		
 		T = np.reshape(T, self.coords.shape)
