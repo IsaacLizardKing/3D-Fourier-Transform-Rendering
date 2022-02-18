@@ -19,7 +19,7 @@ class Fourier:
 		self.trans = np.reshape(self.trans, (self.trans.size))
 
 	def eval(self, coords):
-		return np.sum((self.trans * np.exp(self.u*coords[0] + self.v*coords[1] + self.w*coords[2])).real) / self.trans.size
+		return np.sum(abs(self.trans * np.exp(self.u*coords[0] + self.v*coords[1] + self.w*coords[2]))) / self.trans.size
 		# ~ this works only in 3D.
 		# ~ coords: coordinates of value you want to find, in the order of numpy's axes.  It should be a 1x3 array
 		# ~ returns: w, the value at the coordinates
@@ -30,7 +30,7 @@ class Fourier:
 		Y = coords[:, 1]
 		Z = coords[:, 2]
 		# ~ start = time.time()
-		w = np.sum((self.trans * np.exp(self.u*X[:, None] + self.v*Y[:, None] + self.w*Z[:, None])).real, axis = -1) / self.trans.size
+		w = np.sum(abs(self.trans * np.exp(self.u*X[:, None] + self.v*Y[:, None] + self.w*Z[:, None])), axis = -1) / self.trans.size
 		# ~ end = time.time()
 		# ~ print(end - start)
 		return w
