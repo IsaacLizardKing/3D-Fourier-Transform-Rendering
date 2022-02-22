@@ -44,7 +44,6 @@ x = np.abs(x)
 y = np.abs(y)
 z = np.abs(z)
 octahedron = np.round(x + y + z - size * 0.4)
-octahedron += np.random.normal(0,3,octahedron.size).reshape(octahedron.shape)
 OctahedronTransform = CustomFourier.Fourier(octahedron)
 # ~ suite[n] = (function, cameraGenerator, ((camResolution, otherArgs), ...))
 suite = (
