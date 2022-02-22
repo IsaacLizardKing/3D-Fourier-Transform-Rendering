@@ -48,21 +48,83 @@ def ClassicalNewtonSeries(Vectors, T, origin, c = np.float32([[[1, 1, 0], [1, 1,
 		iterations -= 1
 	return T, PartialDerivatives(T, c)
 
-def BoundPoints(Vectors, coords, origin, MaxDistance, bounds):
+def BoundPoints(Vectors, coords, origin, MaxDistance, b):
 		# ~ Vectors is the marching vectors
 		# ~ coords is the current progress of the marching vectors
 		# ~ origin is the coords of the camera
 		# ~ MaxDistance is the maximum render distance
-		# ~ bounds is the box to be rendered, should be in the form [[lowerX,upperX],[lowerY,upperY],[lowerZ,upperZ]]
+		# ~ b is the bounding box to be rendered, should be in the form [[lowerX,upperX],[lowerY,upperY],[lowerZ,upperZ]]
 		# ~ returns coords, but all points outside of the box are set to MaxDistance * 1.1 away from the camera
+		print("bounding")
+		print("coords", coords.size)
 		X = coords[:, 0]
 		Y = coords[:, 1]
 		Z = coords[:, 2]
-		mask = (X>bounds[0][0]) * (X<bounds[0][1]) * (Y>bounds[1][0]) * (Y<bounds[1][1]) * (Z>bounds[2][0]) * (Z<bounds[2][1])
-		mask = mask == 0
-		coords[mask, 0] = origin[0] + (MaxDistance * Vectors[mask, 0] * 1.1)
-		coords[mask, 1] = origin[1] + (MaxDistance * Vectors[mask, 1] * 1.1)
-		coords[mask, 2] = origin[2] + (MaxDistance * Vectors[mask, 2] * 1.1)
+
+		dw = X * 0
+
+		A1 = b[0][0]#they should already be sorted
+		A2 = b[1][0]
+		A3 = b[2][0]
+		B1 = b[0][1]
+		B2 = b[1][1]
+		B3 = b[2][1]
+		
+		#GET INTERSECTION RHO
+		Ca1 = (A1 - origin[0]) / Vectors[:, 0]
+		Ca2 = (A2 - origin[1]) / Vectors[:, 1]
+		Ca3 = (A3 - origin[2]) / Vectors[:, 2]
+		Cb1 = (B1 - origin[0]) / Vectors[:, 0]
+		Cb2 = (B2 - origin[1]) / Vectors[:, 1]
+		Cb3 = (B3 - origin[2]) / Vectors[:, 2]
+		
+		#GET COORDINATES OF INTERSECTIONS
+		Ca1x = origin[0] + Vectors[:, 0] * Ca1
+		Ca1y = origin[1] + Vectors[:, 1] * Ca1
+		Ca1z = origin[2] + Vectors[:, 2] * Ca1
+		Ca2x = origin[0] + Vectors[:, 0] * Ca2
+		Ca2y = origin[1] + Vectors[:, 1] * Ca2
+		Ca2z = origin[2] + Vectors[:, 2] * Ca2
+		Ca3x = origin[0] + Vectors[:, 0] * Ca3
+		Ca3y = origin[1] + Vectors[:, 1] * Ca3
+		Ca3z = origin[2] + Vectors[:, 2] * Ca3
+		Cb1x = origin[0] + Vectors[:, 0] * Cb1
+		Cb1y = origin[1] + Vectors[:, 1] * Cb1
+		Cb1z = origin[2] + Vectors[:, 2] * Cb1
+		Cb2x = origin[0] + Vectors[:, 0] * Cb2
+		Cb2y = origin[1] + Vectors[:, 1] * Cb2
+		Cb2z = origin[2] + Vectors[:, 2] * Cb2
+		Cb3x = origin[0] + Vectors[:, 0] * Cb3
+		Cb3y = origin[1] + Vectors[:, 1] * Cb3
+		Cb3z = origin[2] + Vectors[:, 2] * Cb3
+		
+		#DETERMINE INTERSECTION VALIDITY
+		mask = (X >= A1) * (X <= B1) * (Y >= A2) * (Y <= B2) * (Z >= A3) * (Z <= B3)
+		mask = 1-mask
+		print("mask", mask.sum())
+#		Ca1mask = (Ca1x >= A1) * (Ca1x <= B1) * (Ca1y >= A2) * (Ca1y <= B2) * (Ca1z >= A3) * (Ca1z <= B3) * (Ca1 >= 0)
+#		Ca2mask = (Ca2x >= A1) * (Ca2x <= B1) * (Ca2y >= A2) * (Ca2y <= B2) * (Ca2z >= A3) * (Ca2z <= B3) * (Ca2 >= 0)
+#		Ca3mask = (Ca3x >= A1) * (Ca3x <= B1) * (Ca3y >= A2) * (Ca3y <= B2) * (Ca3z >= A3) * (Ca3z <= B3) * (Ca3 >= 0)
+#		Cb1mask = (Cb1x >= A1) * (Cb1x <= B1) * (Cb1y >= A2) * (Cb1y <= B2) * (Cb1z >= A3) * (Cb1z <= B3) * (Cb1 >= 0)
+#		Cb2mask = (Cb2x >= A1) * (Cb2x <= B1) * (Cb2y >= A2) * (Cb2y <= B2) * (Cb2z >= A3) * (Cb2z <= B3) * (Cb2 >= 0)
+#		Cb3mask = (Cb3x >= A1) * (Cb3x <= B1) * (Cb3y >= A2) * (Cb3y <= B2) * (Cb3z >= A3) * (Cb3z <= B3) * (Cb3 >= 0)
+
+		Ca1mask = (Ca1y >= A2) * (Ca1y <= B2) * (Ca1z >= A3) * (Ca1z <= B3) * (Ca1 >= 0)#the corresponding coordinates should already be inside, no?
+		Ca2mask = (Ca2x >= A1) * (Ca2y <= B2) * (Ca2z >= A3) * (Ca2z <= B3) * (Ca2 >= 0)
+		Ca3mask = (Ca3x >= A1) * (Ca3x <= B1) * (Ca3y >= A2) * (Ca3y <= B2) * (Ca3 >= 0)
+		Cb1mask = (Cb1y >= A2) * (Cb1y <= B2) * (Cb1z >= A3) * (Cb1z <= B3) * (Cb1 >= 0)
+		Cb2mask = (Cb2x >= A1) * (Cb2x <= B1) * (Cb2z >= A3) * (Cb2z <= B3) * (Cb2 >= 0)
+		Cb3mask = (Cb3x >= A1) * (Cb3x <= B1) * (Cb3y >= A2) * (Cb3y <= B2) * (Cb3 >= 0)
+
+		Valid = np.logical_or(np.logical_or(np.logical_or(Ca2mask, Ca3mask), Ca1mask), np.logical_or(np.logical_or(Cb2mask, Cb3mask), Cb1mask))
+		print("Valid", Valid.sum())
+		
+		dw = np.minimum(np.minimum(np.minimum(Ca1, Ca2), Ca3), np.minimum(np.minimum(Cb1, Cb2), Cb3))
+		dw[Valid == 0] = MaxDistance * 1.1#why do this multiple times? i simpilified it
+		#dw[mask] = (X[mask] - origin[0]) / Vectors[mask, 0]
+		coords[mask, 0] = origin[0] + (dw[mask] * Vectors[mask, 0])
+		coords[mask, 1] = origin[1] + (dw[mask] * Vectors[mask, 1])
+		coords[mask, 2] = origin[2] + (dw[mask] * Vectors[mask, 2])
 		return coords
 
 def ModifiedNewtonSeries(Vectors, T, origin, c = np.float32([[[1, 1, 0], [1, 1, 0], [1, 1, 0]]]), iterations = 500, thresh = 0, MaxDistance = -1, bounds = None):
@@ -122,7 +184,7 @@ def ModifiedNewtonTransform(Vectors, T, origin, data, iterations = 500, thresh =
 		dw[dw > MaxStep] = MaxStep
 		NewSigns = np.absolute(w) / w
 		dw[OriginalSigns != NewSigns] = 0
-		T = data.CheckBounds(Vectors, T, origin, MaxDistance)
+		T = BoundPoints(Vectors, T, origin, MaxDistance, data.bounds)
 		if(MaxDistance > 0):
 			dw[np.sqrt(np.sum(np.power(T - origin, 2), axis=-1)) > MaxDistance] = 0
 		if(np.max(dw) == 0):
