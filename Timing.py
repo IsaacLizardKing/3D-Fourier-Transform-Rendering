@@ -7,19 +7,22 @@ import math
 import time
 import os
 import CustomFourier
-XT = math.pi / 2
-YT = math.pi / 2
-ZT = math.pi / 2
+XT = -math.pi / 2 
+YT = -math.pi / 2 
+ZT = -math.pi / 2 
 
-theta = 90
-phi = 0
+theta = 45
+phi = -45
 fov = 140
 fov = fov / 180 * math.pi
 
 OctaTheta, OctaPhi, _ = Camera.cartesian2Spherical(1,1,1)
+EggCrate = np.float32([[[1, 1, 0], [1, 1, 0], [1, 1, 0]]])
 
-def EggCrate(cam, name, bounds = None):
-	cam.facePoint((0,0,0))
+def EggCratee(cam, name, bounds = None):
+	global EggCrate
+	# ~ cam.facePoint((0,0,0))
+	
 	for p in range(0, 200):
 		threshold = -1 + (p*0.01)
 		out = cam.RenderFourierSeries(EggCrate, threshold, bounds = bounds)
@@ -32,12 +35,11 @@ def Octahedron(cam, name):
 		cam.rotate(math.pi / 180, 0)
 
 
-EggCrate = np.array([[[1, 1, 0], [1, 1, 0], [1, 1, 0]]], np.float32)
-bounds1 = [[-5,5],[-5,5],[-5,5]]
+bounds1 = [[0,math.pi],[0,math.pi],[0,math.pi * 2]]
 
 # ~ octahedron input data
 size = 10
-x, y, z = np.mgrid[:size, :size * 2, :size * 3] - (size / 2)
+x, y, z = np.mgrid[:size, :size, :size] - (size / 2)
 x = np.abs(x)
 y = np.abs(y)
 z = np.abs(z)
@@ -46,8 +48,8 @@ octahedron += np.random.normal(0,3,octahedron.size).reshape(octahedron.shape)
 OctahedronTransform = CustomFourier.Fourier(octahedron)
 # ~ suite[n] = (function, cameraGenerator, ((camResolution, otherArgs), ...))
 suite = (
-	(Octahedron, lambda res : Camera.camera(OctaTheta, OctaPhi, fov, (res,res), 0, 0, 0), ((50, "octo50"), (100, "octo100"), (500, "octo500"))),
-	(EggCrate, lambda res : Camera.camera(theta * math.pi / 180, phi * math.pi / 180, fov, (res,res), XT, YT, ZT), ((50, "EggCrateBounded50", bounds1), (100, "EggCrateBounded100", bounds1), (500, "EggCrateBounded500", bounds1), (50, "EggCrateUnbounded50"), (100, "EggCrateUnbounded100"), (500, "EggCrateUnbounded500"))),
+	# ~ (Octahedron, lambda res : Camera.camera(OctaTheta, OctaPhi, fov, (res,res), 0, 0, 0), ((50, "octo50"), (100, "octo100"), (500, "octo500"))),
+	(EggCratee, lambda res : Camera.camera(theta * math.pi / 180, phi * math.pi / 180, fov, (res,res), XT, YT, ZT), ((50, "EggCrateBounded50", bounds1), (100, "EggCrateBounded100", bounds1), (500, "EggCrateBounded500", bounds1), (50, "EggCrateUnbounded50"), (100, "EggCrateUnbounded100"), (500, "EggCrateUnbounded500"))),
 )
 
 for timer in suite:
