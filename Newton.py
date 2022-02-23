@@ -1,8 +1,23 @@
 import math
 import numpy as np
+import cv2
 import time
 
-COORDINATE_FUDGER = 1e-5
+COORDINATE_FUDGER = 1e-10
+
+def show(img, time = 0):
+	cv2.imshow("image", img)
+	cv2.waitKey(time)
+	if time == 0:
+		cv2.destroyAllWindows()
+
+def normalize(img):
+	img = img * 1.0
+	img -= np.min(img)
+	img /= np.max(img)
+	img *= 255.999
+	return np.uint8(img)
+
 
 def PartialDerivativesSeries(T, c):
 	DT = T * 0
@@ -55,12 +70,13 @@ def BoundPoints(Vectors, coords, origin, MaxDistance, b):
 		# ~ MaxDistance is the maximum render distance
 		# ~ b is the bounding box to be rendered, should be in the form [[lowerX,upperX],[lowerY,upperY],[lowerZ,upperZ]]
 		# ~ returns coords, but all points outside of the box are set to MaxDistance * 1.1 away from the camera
-		print("bounding")
-		print("coords", coords.size)
+		
 		X = coords[:, 0]
 		Y = coords[:, 1]
 		Z = coords[:, 2]
-
+		
+		distance = np.sqrt(np.sum(np.power(coords - origin, 2), axis=-1))
+		# ~ show(normalize(np.reshape(distance, (50, 50))), 1)
 		dw = X * 0
 
 		A1 = b[0][0]#they should already be sorted
@@ -100,55 +116,56 @@ def BoundPoints(Vectors, coords, origin, MaxDistance, b):
 		
 		#DETERMINE INTERSECTION VALIDITY
 		mask = (X >= A1) * (X <= B1) * (Y >= A2) * (Y <= B2) * (Z >= A3) * (Z <= B3)
-		mask = 1-mask
-		print("mask", mask.sum())
-#		Ca1mask = (Ca1x >= A1) * (Ca1x <= B1) * (Ca1y >= A2) * (Ca1y <= B2) * (Ca1z >= A3) * (Ca1z <= B3) * (Ca1 >= 0)
-#		Ca2mask = (Ca2x >= A1) * (Ca2x <= B1) * (Ca2y >= A2) * (Ca2y <= B2) * (Ca2z >= A3) * (Ca2z <= B3) * (Ca2 >= 0)
-#		Ca3mask = (Ca3x >= A1) * (Ca3x <= B1) * (Ca3y >= A2) * (Ca3y <= B2) * (Ca3z >= A3) * (Ca3z <= B3) * (Ca3 >= 0)
-#		Cb1mask = (Cb1x >= A1) * (Cb1x <= B1) * (Cb1y >= A2) * (Cb1y <= B2) * (Cb1z >= A3) * (Cb1z <= B3) * (Cb1 >= 0)
-#		Cb2mask = (Cb2x >= A1) * (Cb2x <= B1) * (Cb2y >= A2) * (Cb2y <= B2) * (Cb2z >= A3) * (Cb2z <= B3) * (Cb2 >= 0)
-#		Cb3mask = (Cb3x >= A1) * (Cb3x <= B1) * (Cb3y >= A2) * (Cb3y <= B2) * (Cb3z >= A3) * (Cb3z <= B3) * (Cb3 >= 0)
-
-		Ca1mask = (Ca1y >= A2) * (Ca1y <= B2) * (Ca1z >= A3) * (Ca1z <= B3) * (Ca1 >= 0)#the corresponding coordinates should already be inside, no?
-		Ca2mask = (Ca2x >= A1) * (Ca2y <= B2) * (Ca2z >= A3) * (Ca2z <= B3) * (Ca2 >= 0)
-		Ca3mask = (Ca3x >= A1) * (Ca3x <= B1) * (Ca3y >= A2) * (Ca3y <= B2) * (Ca3 >= 0)
-		Cb1mask = (Cb1y >= A2) * (Cb1y <= B2) * (Cb1z >= A3) * (Cb1z <= B3) * (Cb1 >= 0)
-		Cb2mask = (Cb2x >= A1) * (Cb2x <= B1) * (Cb2z >= A3) * (Cb2z <= B3) * (Cb2 >= 0)
-		Cb3mask = (Cb3x >= A1) * (Cb3x <= B1) * (Cb3y >= A2) * (Cb3y <= B2) * (Cb3 >= 0)
-
-		Valid = np.logical_or(np.logical_or(np.logical_or(Ca2mask, Ca3mask), Ca1mask), np.logical_or(np.logical_or(Cb2mask, Cb3mask), Cb1mask))
-		print("Valid", Valid.sum())
+		mask = 1 - mask
+		Ca1mask = (Ca1y >= A2) * (Ca1y <= B2) * (Ca1z >= A3) * (Ca1z <= B3) * (Ca1 >= 0) * (Ca1 > distance)
+		Ca2mask = (Ca2x >= A1) * (Ca2x <= B1) * (Ca2z >= A3) * (Ca2z <= B3) * (Ca2 >= 0) * (Ca2 > distance)
+		Ca3mask = (Ca3x >= A1) * (Ca3x <= B1) * (Ca3y >= A2) * (Ca3y <= B2) * (Ca3 >= 0) * (Ca3 > distance)
+		Cb1mask = (Cb1y >= A2) * (Cb1y <= B2) * (Cb1z >= A3) * (Cb1z <= B3) * (Cb1 >= 0) * (Cb1 > distance)
+		Cb2mask = (Cb2x >= A1) * (Cb2x <= B1) * (Cb2z >= A3) * (Cb2z <= B3) * (Cb2 >= 0) * (Cb2 > distance)
+		Cb3mask = (Cb3x >= A1) * (Cb3x <= B1) * (Cb3y >= A2) * (Cb3y <= B2) * (Cb3 >= 0) * (Cb3 > distance)
+		Ca1[Ca1mask == 0] = MaxDistance * 1.1
+		Ca2[Ca2mask == 0] = MaxDistance * 1.1
+		Ca3[Ca3mask == 0] = MaxDistance * 1.1
+		Cb1[Cb1mask == 0] = MaxDistance * 1.1
+		Cb2[Cb2mask == 0] = MaxDistance * 1.1
+		Cb3[Cb3mask == 0] = MaxDistance * 1.1
 		
 		dw = np.minimum(np.minimum(np.minimum(Ca1, Ca2), Ca3), np.minimum(np.minimum(Cb1, Cb2), Cb3))
-		dw[Valid == 0] = MaxDistance * 1.1#why do this multiple times? i simpilified it
-		#dw[mask] = (X[mask] - origin[0]) / Vectors[mask, 0]
+		# ~ print(np.max(Vectors))
+		# ~ show(normalize(np.reshape(dw, (50, 50))), 1)
+		# ~ show(normalize(np.reshape(Ca2, (50, 50))), 0)
+		# ~ show(normalize(np.reshape(Ca3, (50, 50))), 0)
+		# ~ show(normalize(np.reshape(Cb1, (50, 50))), 0)
+		# ~ show(normalize(np.reshape(Cb2, (50, 50))), 0)
+		# ~ show(normalize(np.reshape(Cb3, (50, 50))), 0)
+		# ~ print(b)
+		mask = mask == 1
 		coords[mask, 0] = origin[0] + (dw[mask] * Vectors[mask, 0])
 		coords[mask, 1] = origin[1] + (dw[mask] * Vectors[mask, 1])
 		coords[mask, 2] = origin[2] + (dw[mask] * Vectors[mask, 2])
 		return coords
 
 def ModifiedNewtonSeries(Vectors, T, origin, c = np.float32([[[1, 1, 0], [1, 1, 0], [1, 1, 0]]]), iterations = 500, thresh = 0, MaxDistance = -1, bounds = None):
-	MaxStep = math.pi / 16
-	MinStep = MaxStep / 8
+	MaxStep = math.pi / 8
+	MinStep = MaxStep / 32
 	N = c.shape[0]
 	X, Y, Z = FourierSeries(T, c)
 	w = (X * Y * Z) / N - thresh
 	OriginalSigns = np.absolute(w) / w
-	
 	while iterations > 0:
+		if bounds:
+			T = BoundPoints(Vectors, T, origin, MaxDistance, bounds)
 		X, Y, Z = FourierSeries(T, c)
 		w = (X * Y * Z) / N - thresh
 		m = np.sum(PartialDerivativesSeries(T, c), axis = -1)
-		dw = w / m
-		# ~ print(np.min(np.absolute(dw)) < MinStep, np.max(dw) > MaxStep)
+		dw = np.absolute(w / m)
 		dw[dw < MinStep] = MinStep
 		dw[dw > MaxStep] = MaxStep
 		NewSigns = np.absolute(w) / w
 		dw[OriginalSigns != NewSigns] = 0
-		if bounds:
-			T = BoundPoints(Vectors, T, origin, MaxDistance, bounds)
 		if(MaxDistance > 0):
-			dw[np.sqrt(np.sum(np.power(T - origin, 2), axis=-1)) > MaxDistance] = 0
+			dw[np.sqrt(np.sum(np.power(T - origin, 2), axis=-1)) >= MaxDistance] = 0
+			# ~ show(normalize(np.reshape(np.sqrt(np.sum(np.power(T - origin, 2), axis=-1)), (200, 200))), 1)
 		if(np.max(dw) == 0):
 			break;
 		T[:,0] += dw * Vectors[:,0]
@@ -159,6 +176,8 @@ def ModifiedNewtonSeries(Vectors, T, origin, c = np.float32([[[1, 1, 0], [1, 1, 
 
 def ClassicalNewtonTransform(Vectors, T, origin, data, iterations = 1, thresh = 0):
 	while iterations > 0:
+		if data.bounds:
+			T = BoundPoints(Vectors, T, origin, MaxDistance, data.bounds)
 		w = data.eval(T)
 		m = w - data.eval(T + COORDINATE_FUDGER) / COORDINATE_FUDGER
 		m = (m / np.absolute(m)) * np.power(math.e, np.absolute(m))
@@ -170,23 +189,36 @@ def ClassicalNewtonTransform(Vectors, T, origin, data, iterations = 1, thresh = 
 	return T, PartialDerivativesTransform(T, data)
 
 def ModifiedNewtonTransform(Vectors, T, origin, data, iterations = 500, thresh = 0, MaxDistance = -1):
-	MaxStep = math.pi / 16
-	MinStep = MaxStep / 8
-	w = data.ParallelEval(T) - thresh
+	MaxStep = math.pi / 4
+	MinStep = MaxStep / 16
+	dataCenter = np.array([(data.bounds[0][0] + data.bounds[0][1]) / 2, (data.bounds[0][0] + data.bounds[0][1]) / 2, (data.bounds[0][0] + data.bounds[0][1]) / 2], np.float32)
+	w = data.eval(dataCenter) - thresh
 	OriginalSigns = np.absolute(w) / w
-	
+	Terminated = T[:,0] * 0
 	while iterations > 0:
-		w = data.ParallelEval(T)
-		m = (w - data.ParallelEval(T + COORDINATE_FUDGER)) / COORDINATE_FUDGER
+		if data.bounds:
+			T = BoundPoints(Vectors, T, origin, MaxDistance, data.bounds)
+		Terminated = np.logical_or(Terminated, np.sqrt(np.sum(np.power(T - origin, 2), axis=-1)) > MaxDistance)
+		w = T[:,0] *0
+		m = T[:,0] *0
+		w[Terminated == 0] = data.ParallelEval(T[Terminated == 0])
+		m[Terminated == 0] = (data.ParallelEval(T[Terminated == 0] + COORDINATE_FUDGER * Vectors[Terminated == 0]) - w[Terminated == 0]) / COORDINATE_FUDGER
 		w -= thresh
-		dw = w / m
+		dw = w * 0
+		dw[Terminated == 0] = np.absolute(w[Terminated == 0] / m[Terminated == 0])
+		
+		# ~ print(np.min(m))
+		# ~ print(np.max(m))
 		dw[dw < MinStep] = MinStep
 		dw[dw > MaxStep] = MaxStep
 		NewSigns = np.absolute(w) / w
 		dw[OriginalSigns != NewSigns] = 0
-		T = BoundPoints(Vectors, T, origin, MaxDistance, data.bounds)
-		if(MaxDistance > 0):
-			dw[np.sqrt(np.sum(np.power(T - origin, 2), axis=-1)) > MaxDistance] = 0
+		Terminated = np.logical_or(Terminated, OriginalSigns != NewSigns)
+		# ~ if(MaxDistance > 0):
+			# ~ dw[np.sqrt(np.sum(np.power(T - origin, 2), axis=-1)) > MaxDistance] = 0
+		show(normalize(np.reshape(np.sum(np.power(T - origin, 2), axis=-1), (100, 100))), 1)
+		dw[Terminated == 1] = 0
+		
 		if(np.max(dw) == 0):
 			break
 		T[:,0] += dw * Vectors[:,0]

@@ -91,9 +91,9 @@ class camera:
 		normals[:,:,2] *= bright
 		normals -= np.min(normals)
 		frame = normals * 0
-		frame[:,:,0] = normals[:,:,0] * (1 - distances) + np.max(normals[:,:,0]) * (distances) * 0.3
-		frame[:,:,1] = normals[:,:,1] * (1 - distances) + np.max(normals[:,:,1]) * (distances) * 0.3
-		frame[:,:,2] = normals[:,:,2] * (1 - distances) + np.max(normals[:,:,2]) * (distances) * 0.3
+		frame[:,:,0] = normals[:,:,0] * (1 - distances) + np.max(normals) * (distances) * 0.3
+		frame[:,:,1] = normals[:,:,1] * (1 - distances) + np.max(normals) * (distances) * 0.3
+		frame[:,:,2] = normals[:,:,2] * (1 - distances) + np.max(normals) * (distances) * 0.3
 		return frame
 		
 	def RenderFourierSeries(self, Coefficients, Thresh, bounds = None):

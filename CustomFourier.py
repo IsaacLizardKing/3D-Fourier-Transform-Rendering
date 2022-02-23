@@ -15,7 +15,7 @@ def show(img, time = 0):
 class Fourier:
 	def __init__(self, data):
 		# ~ TODO maybe test a couple and find the fastest, also see what data can be thrown, if any
-		self.bounds = ((0, data.shape[0]), (0, data.shape[1]), (0, data.shape[2]))
+		self.bounds = ((0, data.shape[0] / 2), (0, data.shape[1] / 2), (0, data.shape[2] / 2))
 		self.trans = np.fft.fftn(data)[:data.shape[0] // 2 + 1, :data.shape[1] // 2 + 1, :data.shape[2] // 2 + 1]
 		self.u,self.v,self.w = np.mgrid[:self.trans.shape[0], :self.trans.shape[1], :self.trans.shape[2]] * 1j * 2 * np.pi
 		self.u /= self.trans.shape[0]
@@ -37,5 +37,5 @@ class Fourier:
 		X = coords[:, 0]
 		Y = coords[:, 1]
 		Z = coords[:, 2]
-		w = np.sum(abs(self.trans * np.exp(self.u*X[:, None] + self.v*Y[:, None] + self.w*Z[:, None])), axis = -1) / self.trans.size
-		return w
+		w = np.sum((self.trans * np.exp(self.u*X[:, None] + self.v*Y[:, None] + self.w*Z[:, None])).real, axis = -1) / self.trans.size
+		return np.float64(w)
