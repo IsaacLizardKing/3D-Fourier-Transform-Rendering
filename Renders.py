@@ -23,12 +23,11 @@ EggCrate = np.array([[[1, 1, 0], [1, 1, 0], [1, 1, 0]]], np.float32)
 
 # ~ octahedron input data
 size = 5
-x, y, z = np.mgrid[:size, :size * 2, :size * 3] - (size / 2)
+x, y, z = np.mgrid[:size, :size , :size] - (size / 2)
 x = np.abs(x)
 y = np.abs(y)
 z = np.abs(z)
-octahedron = np.round(x + y + z - size * 0.4)
-octahedron += np.random.normal(0,3,octahedron.size).reshape(octahedron.shape)
+octahedron = np.round(x + y + z - size * 0.6)
 OctahedronTransform = CustomFourier.Fourier(octahedron)
 start = time.time()
 Camera.show(cam.RenderFourierTransform(OctahedronTransform, 0))
