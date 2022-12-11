@@ -30,7 +30,7 @@ z = np.abs(z)
 octahedron = np.round(x + y + z - size * 0.6)
 OctahedronTransform = CustomFourier.Fourier(octahedron)
 start = time.time()
-Camera.show(cam.RenderFourierTransform(OctahedronTransform, 0))
+Camera.show(cam.RenderExplicit(OctahedronTransform, 0))
 end = time.time()
 print(end - start)
 

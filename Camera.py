@@ -19,13 +19,13 @@ def normalize(img):
 
 def cartesian2Spherical(x, y, z):
 	return np.arctan2(y,x), np.arctan2(np.sqrt(np.power(x, 2) + np.power(y, 2)), z),  np.sqrt(np.power(x, 2) + np.power(y, 2) + np.power(z, 2))
-	
+
 def spherical2Cartesian(theta, phi, rho = 1):
 	return rho * np.cos(theta) * np.sin(phi), rho * np.sin(theta) * np.sin(phi), rho * np.cos(phi)
-	
+
 def getVectorMagnitude(Vect):
 	return np.sum(np.power(Vect, 2)) ** 0.5
-	
+
 def normalizeVector(Vect):
 	t = np.arctan2(Vect[1], Vect[0])
 	p = np.arctan2(np.sqrt(np.power(Vect[0], 2) + np.power(Vect[1], 2)), Vect[2])
@@ -57,7 +57,7 @@ class camera:
 		self.coords[:,:,1] = self.screen[:, :, 0] * Matrix[1, 0] + self.screen[:, :, 1] * Matrix[1, 1] + self.screen[:, :, 2] * Matrix[1, 2]
 		self.coords[:,:,2] = self.screen[:, :, 0] * Matrix[2, 0] + self.screen[:, :, 1] * Matrix[2, 1] + self.screen[:, :, 2] * Matrix[2, 2]
 		self.coords = parallelNormalizeVector(self.coords)
-	
+
 	def __init__(self, theta, phi, fov, resolution, x, y, z):
 		self.origin = np.array([x, y, z], np.float32)
 		Y, X = np.mgrid[:resolution[0], :resolution[1]]
@@ -75,10 +75,10 @@ class camera:
 		self.phi = 0
 		self.rotate(theta, phi)
 		self.MaxRenderDistance = 16 * math.pi
-		
+
 	def DoShading(self, Coords, normals):
 		Vect = self.coords * 1
-		
+
 		normals = parallelNormalizeVector(normals)
 		bright = np.sum(normals * Vect, axis = -1)
 		MaxD = self.MaxRenderDistance
@@ -95,35 +95,38 @@ class camera:
 		frame[:,:,1] = normals[:,:,1] * (1 - distances) + np.max(normals) * (distances) * 0.3
 		frame[:,:,2] = normals[:,:,2] * (1 - distances) + np.max(normals) * (distances) * 0.3
 		return frame
-		
+
 	def RenderFourierSeries(self, Coefficients, Thresh, bounds = None):
 		Vect = np.reshape(self.coords * 1, (self.coords.shape[0] * self.coords.shape[1], 3))
 		Coords = Vect * 0
 		Coords[:, 0] = self.origin[0]
 		Coords[:, 1] = self.origin[1]
 		Coords[:, 2] = self.origin[2]
-		
+
 		T, DT = Newton.ModifiedNewtonSeries(Vect, Coords, self.origin * 1, Coefficients, thresh = Thresh, MaxDistance = self.MaxRenderDistance, bounds = bounds)
 		# ~ T, DT = Newton.ClassicalNewtonSeries(Vect, Estimates, self.origin, thresh = Thresh)
-		
+
 		T = np.reshape(T, self.coords.shape)
 		DT = np.reshape(DT, self.coords.shape)
 		frame = self.DoShading(T, DT)
 		return normalize(frame)
-		
-	def RenderFourierTransform(self, Transform, Thresh, iterations = 500):
+
+	# Func needs to have:
+	#	bounds = ((xLower, xUpper), (yLower, yUpper), (zLower, zUpper))
+	#	eval(coords); coords = numpy array dtype = np.float64 and shape = (3)
+	#	ParallelEval(coords); coords = numpy array dtype = np.float64 and shape = (:, 3)
+	def RenderExplicit(self, Func, Thresh, iterations = 500):
 		Vect = np.reshape(self.coords * 1, (self.coords.shape[0] * self.coords.shape[1], 3))
 		Coords = Vect * 0
 		Coords[:, 0] = self.origin[0]
 		Coords[:, 1] = self.origin[1]
 		Coords[:, 2] = self.origin[2]
-		
-		T, DT = Newton.ModifiedNewtonTransform(Vect, Coords, self.origin * 1, Transform, iterations=iterations, thresh = Thresh, MaxDistance = self.MaxRenderDistance)
+
+		T, DT = Newton.ModifiedNewtonExplicit(Vect, Coords, self.origin * 1, Func, iterations=iterations, thresh = Thresh, MaxDistance = self.MaxRenderDistance)
 		# ~ T, DT = Newton.ClassicalNewtonTransform(Vect, Estimates, self.origin, Data, thresh = Thresh)
-		
-		
+
 		T = np.reshape(T, self.coords.shape)
 		DT = np.reshape(DT, self.coords.shape)
 		frame = self.DoShading(T, DT)
 		return normalize(frame)
-		
+

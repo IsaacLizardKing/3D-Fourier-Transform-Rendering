@@ -188,7 +188,7 @@ def ClassicalNewtonTransform(Vectors, T, origin, data, iterations = 1, thresh = 
 		iterations -= 1
 	return T, PartialDerivativesTransform(T, data)
 
-def ModifiedNewtonTransform(Vectors, T, origin, data, iterations = 500, thresh = 0, MaxDistance = -1):
+def ModifiedNewtonExplicit(Vectors, T, origin, data, iterations = 500, thresh = 0, MaxDistance = -1):
 	MaxStep = math.pi / 4
 	MinStep = MaxStep / 16
 	dataCenter = np.array([(data.bounds[0][0] + data.bounds[0][1]) / 2, (data.bounds[0][0] + data.bounds[0][1]) / 2, (data.bounds[0][0] + data.bounds[0][1]) / 2], np.float32)
@@ -216,7 +216,7 @@ def ModifiedNewtonTransform(Vectors, T, origin, data, iterations = 500, thresh =
 		Terminated = np.logical_or(Terminated, OriginalSigns != NewSigns)
 		# ~ if(MaxDistance > 0):
 			# ~ dw[np.sqrt(np.sum(np.power(T - origin, 2), axis=-1)) > MaxDistance] = 0
-		show(normalize(np.reshape(np.sum(np.power(T - origin, 2), axis=-1), (100, 100))), 1)
+		# ~ show(normalize(np.reshape(np.sum(np.power(T - origin, 2), axis=-1), (100, 100))), 1)
 		dw[Terminated == 1] = 0
 		
 		if(np.max(dw) == 0):

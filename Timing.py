@@ -32,7 +32,7 @@ def EggCratee(cam, name, bounds = None):
 
 def Octahedron(cam, name):
 	for p in range(0, 360):
-		out = cam.RenderFourierTransform(OctahedronTransform, 0)
+		out = cam.RenderExplicit(OctahedronTransform, 0)
 		cv2.imwrite(os.path.join(name, f"{p:03}.png"), out)
 		cam.rotate(math.pi / 180, 0)
 
